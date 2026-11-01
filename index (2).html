@@ -1,0 +1,830 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pecha Press</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Jomolhari&family=Noto+Serif:wght@400&family=Noto+Serif+Tibetan:wght@400..700&display=swap">
+<style>
+/* Layout: a composing desk — the manuscript form on the left, the leaves stacking up on the right; stacked on phones. */
+:root {
+  --bg: #efe9dc;          /* unbleached paper */
+  --surface: #fbf8f1;
+  --fg: #1e1a14;          /* lamp-black ink */
+  --muted: #6b6253;
+  --rule: #d6cdb9;
+  --accent: #a3301d;      /* cinnabar, the red of pecha headings */
+  --accent-fg: #fff8f0;
+  --leaf-shadow: rgba(60, 40, 10, .18);
+  --focus: #a3301d;
+  --font-ui: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-tib: "Jomolhari", "Noto Serif Tibetan", serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #15120f; --surface: #1f1b16; --fg: #ebe4d6; --muted: #a0968a; --rule: #3a3229;
+    --accent: #d9583f; --accent-fg: #1a0e0a; --leaf-shadow: rgba(0,0,0,.6); --focus: #d9583f;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #15120f; --surface: #1f1b16; --fg: #ebe4d6; --muted: #a0968a; --rule: #3a3229;
+  --accent: #d9583f; --accent-fg: #1a0e0a; --leaf-shadow: rgba(0,0,0,.6); --focus: #d9583f;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-ui); font-size: 14px; line-height: 1.45; margin: 0; }
+.wrap { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 18px 40px; max-width: 1480px; margin: 0 auto; }
+header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px 18px; margin-bottom: 18px; }
+h1 { font: 500 22px/1.2 var(--font-ui); margin: 0; letter-spacing: -.01em; }
+h1 .tib { font-family: var(--font-tib); font-size: 26px; margin-right: 6px; color: var(--accent); }
+header p { margin: 0; color: var(--muted); max-width: 60ch; text-wrap: balance; }
+.desk { display: grid; grid-template-columns: minmax(300px, 400px) minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (max-width: 880px) { .desk { grid-template-columns: minmax(0, 1fr); } }
+.panel { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 16px; min-width: 0; }
+.panel h2 { font: 600 11px/1 var(--font-ui); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; }
+.text-card { border-top: 1px solid var(--rule); padding-top: 14px; margin-top: 14px; display: grid; gap: 10px; }
+.text-card:first-of-type { border-top: 0; padding-top: 0; margin-top: 0; }
+.card-head { display: flex; justify-content: space-between; align-items: center; }
+.card-head b { font-weight: 600; }
+label { display: grid; gap: 4px; font-size: 12px; color: var(--muted); }
+label span.l { display: flex; justify-content: space-between; gap: 8px; }
+input[type=text], textarea, select, input[type=number] {
+  font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--rule); border-radius: 4px; padding: 7px 9px; width: 100%; min-width: 0;
+}
+input.tib, textarea.tib { font-family: var(--font-tib); font-size: 17px; line-height: 1.7; }
+textarea.tib { min-height: 200px; resize: vertical; }
+input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+.hint { font-size: 12px; color: var(--muted); margin: 0; }
+.hint code { font-family: inherit; background: var(--bg); border: 1px solid var(--rule); border-radius: 3px; padding: 0 4px; }
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.settings { display: grid; gap: 10px; margin-top: 16px; border-top: 1px solid var(--rule); padding-top: 14px; }
+.check { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--fg); }
+.check input { width: 16px; height: 16px; margin: 0; accent-color: var(--accent); }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+button { font: 500 13px/1 var(--font-ui); border-radius: 4px; border: 1px solid var(--rule); background: var(--surface); color: var(--fg); padding: 9px 12px; cursor: pointer; }
+button:hover { border-color: var(--muted); }
+button.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 600; }
+button.primary:disabled { opacity: .55; cursor: default; }
+button.ghost { background: transparent; border-color: transparent; color: var(--muted); padding: 4px 6px; }
+button.ghost:hover { color: var(--accent); border-color: transparent; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.preview-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+.preview-head .count { color: var(--muted); font-variant-numeric: tabular-nums; }
+.status { font-size: 12px; color: var(--muted); min-height: 1.4em; margin-top: 8px; }
+.status.err { color: var(--accent); }
+.leaves { display: grid; gap: 14px; }
+.leaf { display: grid; gap: 4px; }
+.leaf canvas { width: 100%; height: auto; display: block; background: #fff; box-shadow: 0 1px 2px var(--leaf-shadow), 0 6px 18px -8px var(--leaf-shadow); }
+.leaf .cap { font-size: 11px; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; display: flex; justify-content: space-between; font-variant-numeric: tabular-nums; }
+.leaf .cap .tib { font-family: var(--font-tib); font-size: 13px; text-transform: none; letter-spacing: 0; }
+.empty { color: var(--muted); padding: 40px 0; text-align: center; }
+@media (prefers-reduced-motion: no-preference) { button { transition: border-color .15s, color .15s; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1><span class="tib">དཔེ་ཆ</span>Pecha Press</h1>
+    <p>Paste Tibetan, get a pecha: the long leaf, the double-ruled frame, the ༄༅ opening with the title in small type, folio words in the left margin and side numbers in the right, a blank leaf after each text. Download it as a PDF — loose leaves, or three to a sheet ready to print and cut.</p>
+  </header>
+
+  <div class="desk">
+    <section class="panel" aria-label="Texts and settings">
+      <h2>Texts</h2>
+      <div id="texts"></div>
+      <div class="actions">
+        <button type="button" id="addText">+ Add another text</button>
+        <button type="button" class="ghost" id="loadExample">Load the example</button>
+      </div>
+
+      <div class="settings">
+        <h2>Type</h2>
+        <div class="row">
+          <label>Face
+            <select id="font">
+              <option value="jomolhari">Jomolhari</option>
+              <option value="noto">Noto Serif Tibetan</option>
+            </select>
+          </label>
+          <label>Size (pt)
+            <input type="number" id="pt" min="11" max="19" step="0.5" value="15">
+          </label>
+        </div>
+        <div class="row">
+          <label>Ink
+            <select id="stroke">
+              <option value="0">Bare face</option>
+              <option value="0.015">Light stroke</option>
+              <option value="0.03">Medium stroke</option>
+              <option value="0.045">Heavy, like lead type</option>
+            </select>
+          </label>
+          <label id="weightLabel" hidden>Weight
+            <select id="weight">
+              <option value="400">Regular</option>
+              <option value="500">Medium</option>
+              <option value="600">Semibold</option>
+              <option value="700">Bold</option>
+            </select>
+          </label>
+          <label>Condense <span class="l"><span></span><span id="sqVal">95%</span></span>
+            <input type="range" id="sq" min="0.85" max="1" step="0.01" value="0.95">
+          </label>
+        </div>
+        <label>Gap after ༄༅ (pt) — text begins this far from the frame
+          <input type="number" id="gap" min="60" max="160" step="1" value="109">
+        </label>
+        <label class="check"><input type="checkbox" id="blank" checked> Blank leaf after each text</label>
+        <h2 style="margin-top:6px">Output</h2>
+        <label>Layout
+          <select id="mode">
+            <option value="loose">One leaf per page (reading)</option>
+            <option value="sheets">3 leaves per sheet, two-sided (printing)</option>
+          </select>
+        </label>
+        <div class="row" id="sheetOpts" hidden>
+          <label>Paper
+            <select id="paper">
+              <option value="letter">Letter, landscape</option>
+              <option value="a4">A4, landscape</option>
+            </select>
+          </label>
+          <label>Back sides
+            <select id="duplex">
+              <option value="short">Rotated 180°, ready to print (default)</option>
+              <option value="long">Upright (printer flips on long edge)</option>
+            </select>
+          </label>
+        </div>
+        <label id="packLabel" hidden>Sheets
+          <select id="pack">
+            <option value="1">Pack the texts together (fewer sheets)</option>
+            <option value="0">Each text on its own sheets</option>
+          </select>
+        </label>
+        <p class="hint" id="sheetHint" hidden>Front: sides 1 · 3 · 5 top to bottom. Back: 2 · 4 · 6 behind them, each turned upside down, so after printing two-sided and cutting the sheet into three equal strips (marks in the side margins) every strip has its a-side in front and its b-side behind when you flip it top over bottom. A strip never mixes two texts, and a blank leaf closes each text; packed, the leaves run on so a sheet may carry strips of two texts. Print at actual size. If your printer flips sheets on the long edge, choose “Upright”.</p>
+        <label>PDF resolution
+          <select id="dpi">
+            <option value="200">200 dpi (smaller file)</option>
+            <option value="300" selected>300 dpi (print)</option>
+            <option value="400">400 dpi</option>
+          </select>
+        </label>
+      </div>
+    </section>
+
+    <section class="panel" aria-label="Preview">
+      <div class="preview-head">
+        <div><h2 style="margin:0 0 2px">Leaves</h2><div class="count" id="count">—</div></div>
+        <button type="button" class="primary" id="download" hidden>Download PDF</button>
+      </div>
+      <div class="leaves" id="leaves"><div class="empty">Loading the typefaces…</div></div>
+      <div class="status" id="status"></div>
+    </section>
+  </div>
+</div>
+
+<script>
+(function () {
+'use strict';
+
+/* ---------------- geometry (points), measured from the scanned W27887 folios ---------------- */
+const PAGE_W = 792, PAGE_H = 176, GAP = 1.8;
+const FR = { x0: 6, y0: 6, x1: 786, y1: 170 };
+const IN = { x0: FR.x0 + GAP, y0: FR.y0 + GAP, x1: FR.x1 - GAP, y1: FR.y1 - GAP };
+IN.w = IN.x1 - IN.x0; IN.h = IN.y1 - IN.y0;
+const S = IN.w / 3474;                 // scan px -> pt
+const COL = 100 * S, CELL = 95 * S, PANEL = 285 * S, PADX = 3;
+const LINE_H = 113 * S;                // line pitch
+const LINES_FULL = 6, LINES_NARROW = 4;
+const LH7 = LINE_H * 0.855;            // pitch when a seventh line is squeezed onto a last side
+const TX0 = IN.x0 + COL + GAP + PADX, TX1 = IN.x1 - COL - GAP - PADX;
+const CELLS = (function () {
+  const bx0 = IN.x0 + COL, bx1 = IN.x1 - COL;
+  const left = []; let x = bx0;
+  for (const w of [PANEL, CELL]) { left.push([x, x + w]); x += w + GAP; }
+  const tx0 = x;
+  const right = []; x = bx1;
+  for (const w of [PANEL, CELL]) { right.push([x - w, x]); x -= w + GAP; }
+  const tx1 = x;
+  return left.concat([[tx0, tx1]], right.reverse());
+})();
+const BAND_X0 = CELLS[0][0], BAND_X1 = CELLS[4][1];
+const NX0 = CELLS[2][0] + PADX, NX1 = CELLS[2][1] - PADX;
+function band(frac) { const h = IN.h * frac; const y0 = IN.y0 + (IN.h - h) / 2; return { y0, y1: y0 + h, h }; }
+const TITLE_BAND = band(0.56), NARROW_BAND = band(0.70);
+const NUM_PT = 13, NUM_FONT = '"Noto Serif", "Times New Roman", Times, serif';   // side number in the right column, as on printed pechas
+
+/* per-face metrics in em: ink above/below the baseline, headline height, ornament top, ornament scale */
+const FACES = {
+  jomolhari: { family: '"Jomolhari", "Noto Serif Tibetan", serif', asc: 1.09, desc: 0.21, headline: 0.738, ornTop: 0.75, orn: 1.4, weights: false, load: 'Jomolhari' },
+  noto:      { family: '"Noto Serif Tibetan", "Jomolhari", serif', asc: 1.19, desc: 0.61, headline: 0.678, ornTop: 0.797, orn: 1.2, weights: true, load: 'Noto Serif Tibetan' }
+};
+
+/* ---------------- Tibetan folio words ---------------- */
+const ONES = ['', 'གཅིག', 'གཉིས', 'གསུམ', 'བཞི', 'ལྔ', 'དྲུག', 'བདུན', 'བརྒྱད', 'དགུ'];
+const TENS = { 20: ['ཉི་ཤུ', 'ཉེར་'], 30: ['སུམ་ཅུ', 'སོ་'], 40: ['བཞི་བཅུ', 'ཞེ་'], 50: ['ལྔ་བཅུ', 'ང་'],
+               60: ['དྲུག་ཅུ', 'རེ་'], 70: ['བདུན་ཅུ', 'དོན་'], 80: ['བརྒྱད་ཅུ', 'གྱ་'], 90: ['དགུ་བཅུ', 'གོ་'] };
+function tibNumber(n) {
+  if (n < 10) return ONES[n];
+  if (n === 10) return 'བཅུ';
+  if (n < 20) return ({ 15: 'བཅོ་ལྔ', 18: 'བཅོ་བརྒྱད' })[n] || 'བཅུ་' + ONES[n - 10];
+  if (n < 100) { const t = Math.floor(n / 10) * 10, r = n % 10; return r ? TENS[t][1] + ONES[r] : TENS[t][0]; }
+  const h = Math.floor(n / 100), r = n % 100;
+  const hw = (h === 1 ? '' : ONES[h] + '་') + 'བརྒྱ';
+  return r ? hw + '་དང་' + tibNumber(r) : hw;
+}
+
+/* ---------------- text preparation ---------------- */
+function joinLines(s) {
+  const lines = s.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  let out = '';
+  for (const t of lines) {
+    if (!out) { out = t; continue; }
+    if (/[་༌]$/.test(out)) out += t;                       // mid-word: continue
+    else if (/[ །]།$/.test(out) || /༎$/.test(out)) out += t; // verse end "། །": no space
+    else out += ' ' + t;
+  }
+  return out.replace(/[ ]{2,}/g, ' ');
+}
+function normTail(s) {
+  s = s.replace(/\s+$/, '');
+  if (/།།$/.test(s) && !/[ །]།།$/.test(s)) s = s.slice(0, -2) + '། །';
+  return s;
+}
+function parseBody(body) {
+  const runs = []; const re = /\{([^}]*)\}/g; let last = 0, m;
+  while ((m = re.exec(body))) {
+    if (m.index > last) runs.push({ cls: 'main', text: body.slice(last, m.index) });
+    runs.push({ cls: 'small', text: m[1] });
+    last = re.lastIndex;
+  }
+  if (last < body.length) runs.push({ cls: 'main', text: body.slice(last) });
+  const out = [];
+  for (const r of runs) {
+    let t = normTail(joinLines(r.text));
+    if (!t.trim()) continue;
+    if (out.length) {
+      const prev = out[out.length - 1].text;
+      if (!(/[་༌]$/.test(prev) || /[ །]།$/.test(prev))) out[out.length - 1].text = prev + ' ';
+    }
+    out.push({ cls: r.cls, text: t });
+  }
+  if (out.length) out[0].text = out[0].text.replace(/^༄༅།\s*།?\s*/, '');   // the layout supplies the ornament
+  return out;
+}
+/* the opening title: set in small type like a colophon, supplied when a plain-start text lacks it */
+const STRIP = /[\s།༎༔༌་ཱ༼༽༏༁ྃ]/g, STRIP_ONE = /[\s།༎༔༌་ཱ༼༽༏༁ྃ]/;
+function loose(s) { return (s || '').replace(STRIP, ''); }
+function cleanTitle(title) {
+  let t = (title || '').replace(/^༄༅།\s*།?\s*/, '').trim();
+  if (t && !/[།༎༔]$/.test(t)) t += /[གཤ]$/.test(t) ? ' །' : '།';
+  return t;
+}
+function titleMissing(title, body) { const t = loose(title).slice(0, 10); return !!t && !loose(body.slice(0, 160)).includes(t); }
+function titlePrefix(title, body) {
+  // only the head of the title that the body does not already open with
+  const syl = syllables(title.replace(/[།༎༔\s]+$/, '')); const lb = loose(body);
+  for (let i = 1; i < syl.length; i++) {
+    const tail = loose(syl.slice(i).join(''));
+    if (tail.length >= 4 && lb.startsWith(tail)) return syl.slice(0, i).join('');
+  }
+  return title;
+}
+function smallTitle(title, runs) {
+  if (!runs.length || runs[0].cls !== 'main') return runs;
+  const body = runs[0].text; const lb = loose(body); let lt = loose(title);
+  if (!lt) return runs;
+  let idx = lb.indexOf(lt);
+  if (idx < 0 || idx > 60) { lt = lt.slice(0, 10); idx = lb.indexOf(lt); if (idx < 0 || idx > 60) return runs; }
+  const need = idx + lt.length; let seen = 0, end = 0;
+  for (let i = 0; i < body.length; i++) { if (!STRIP_ONE.test(body[i])) { seen++; if (seen === need) { end = i + 1; break; } } }
+  const m = /[།༔]/.exec(body.slice(end)); end = m ? end + m.index + 1 : body.length;
+  if (end > 220) return runs;
+  const head = body.slice(0, end).replace(/\s+$/, ''), rest = body.slice(end).replace(/^\s+/, '');
+  const out = [{ cls: 'small', text: head }];
+  if (rest) out.push({ cls: 'main', text: rest, glue: true });     // one ordinary space before the text, never stretched
+  return out.concat(runs.slice(1));
+}
+function tokenize(runs) {
+  const toks = [];
+  for (const r of runs) {
+    if (r.glue) { if (toks.length && toks[toks.length - 1].space) toks[toks.length - 1].glue = true; else if (toks.length) toks.push({ cls: 'main', text: ' ', space: true, glue: true }); }
+    const re = /\s+|[^\s་]+་|[^\s་]+|་/g; let m;
+    while ((m = re.exec(r.text))) {
+      const s = m[0];
+      if (/^\s+$/.test(s)) { if (toks.length && !toks[toks.length - 1].space) toks.push({ cls: r.cls, text: ' ', space: true }); }
+      else if (/^[།༎༑]+$/.test(s) && toks.length) {
+        // a lone shad never starts a line: glue it (and the space before it) to the previous token
+        if (toks[toks.length - 1].space) toks.pop();
+        const p = toks[toks.length - 1]; p.text += (p.text.endsWith(' ') ? '' : ' ') + s;
+      }
+      else toks.push({ cls: r.cls, text: s });
+    }
+  }
+  while (toks.length && toks[toks.length - 1].space) toks.pop();
+  return toks;
+}
+function syllables(s) { return s.match(/[^་]+་?/g) || []; }
+function briefTitle(title) {
+  const syl = syllables(title.replace(/^༄༅།\s*།?\s*/, '').replace(/[།༎\s]+$/, ''));
+  const take = syl.slice(0, 4).join('').replace(/་$/, '');
+  return take ? take + (/[གཤ]$/.test(take) ? ' །' : '།') : '';
+}
+function splitTitle(short) {
+  const syl = syllables(short);
+  if (syl.length < 2) return [short, ''];
+  const h = Math.ceil(syl.length / 2);
+  return [syl.slice(0, h).join(''), syl.slice(h).join('')];
+}
+
+/* ---------------- measurement ---------------- */
+const mcv = document.createElement('canvas'); const mctx = mcv.getContext('2d');
+let widthCache = new Map();
+function fontStr(opt, size) { return `${opt.face.weights ? opt.weight : 400} ${size}px ${opt.face.family}`; }
+function measure(opt, text, size) {
+  const key = size + '|' + text;
+  let w = widthCache.get(key);
+  if (w === undefined) { mctx.font = fontStr(opt, size); w = mctx.measureText(text).width; widthCache.set(key, w); }
+  return w * opt.sq;                     // width on the page, after condensing
+}
+
+/* ---------------- layout ---------------- */
+function fillLines(opt, toks, pos, x0, x1, nLines, yig) {
+  const lines = []; let i = pos;
+  for (let ln = 0; ln < nLines && i < toks.length; ln++) {
+    const first = ln === 0 && yig;
+    const lx0 = x0 + (first ? opt.gap : 0), avail = x1 - lx0;
+    while (i < toks.length && toks[i].space) i++;          // no leading space
+    const cur = []; let curW = 0;
+    while (i < toks.length) {
+      let t = toks[i];
+      if (first && cur.length === 0 && !t.text.startsWith('།')) t = { cls: t.cls, text: '།' + t.text };
+      const size = t.cls === 'small' ? opt.smallPt : opt.pt;
+      const w = t.space ? measure(opt, ' ', opt.pt) : measure(opt, t.text, size);
+      if (cur.length && curW + w > avail + 0.01 && !t.space) break;
+      cur.push({ text: t.text, cls: t.cls, space: !!t.space, glue: !!t.glue, w, size }); curW += w; i++;
+    }
+    while (cur.length && cur[cur.length - 1].space) { curW -= cur[cur.length - 1].w; cur.pop(); }
+    if (!cur.length) break;
+    lines.push({ x0: lx0, avail, toks: cur, natural: curW });
+  }
+  return { lines, next: i };
+}
+function placeLine(line, justify) {
+  const n = line.toks.length;
+  const stretch = []; for (let j = 0; j < n - 1; j++) stretch.push(!(line.toks[j].glue || line.toks[j + 1].glue));
+  const gaps = stretch.filter(Boolean).length;
+  let extra = 0;
+  if (justify && gaps > 0) {
+    extra = (line.avail - line.natural) / gaps;
+    if (extra > line.toks[0].size * 1.2) extra = 0;        // too short to stretch: leave it ragged
+  }
+  let x = line.x0;
+  line.toks.forEach((t, j) => { t.x = x; x += t.w + (j < n - 1 && stretch[j] ? extra : 0); });
+}
+function layoutText(opt, t, labelsFor) {
+  const face = opt.face, pt = opt.pt;
+  const pages = [];
+  const plain = (t.opening || 'plain') !== 'leaf';
+  const title = cleanTitle(t.title);
+  /* title leaf (only for the "title leaf" opening) */
+  if (!plain) {
+    const full = '༄༅། །' + title;
+    const tpt = pt + 2, apt = pt - 2;
+    const cellW = NX1 - NX0 - 28;
+    const tt = tokenize([{ cls: 'main', text: full }]);
+    const tl = []; let i = 0;
+    while (i < tt.length && tl.length < 3) {
+      const r = fillLines({ ...opt, pt: tpt, smallPt: tpt, gap: 0 }, tt, i, NX0 + 14, NX1 - 14, 1, false);
+      if (!r.lines.length) break;
+      tl.push(r.lines[0]); i = r.next;
+    }
+    const L = tpt * 1.6, A = apt * 1.6;
+    const blockH = tl.length * L + (t.author ? A + 4 : 0);
+    const cy = (TITLE_BAND.y0 + TITLE_BAND.y1) / 2;
+    let top = cy - blockH / 2;
+    const lines = [];
+    for (const ln of tl) {
+      const x = NX0 + 14 + (cellW - ln.natural) / 2; let xx = x;
+      for (const tk of ln.toks) { tk.x = xx; xx += tk.w; }
+      lines.push({ y: top + L / 2 + (face.asc - face.desc) / 2 * tpt, toks: ln.toks });
+      top += L;
+    }
+    if (t.author) {
+      const at = tokenize([{ cls: 'main', text: t.author }]);
+      const r = fillLines({ ...opt, pt: apt, smallPt: apt, gap: 0 }, at, 0, NX0 + 14, NX1 - 14, 1, false);
+      if (r.lines.length) {
+        const ln = r.lines[0]; let xx = NX0 + 14 + (cellW - ln.natural) / 2;
+        for (const tk of ln.toks) { tk.x = xx; xx += tk.w; }
+        lines.push({ y: top + 4 + A / 2 + (face.asc - face.desc) / 2 * apt, toks: ln.toks });
+      }
+    }
+    pages.push({ kind: 'title', band: TITLE_BAND, lines, labels: [] });
+  }
+  /* body: a plain start opens on a full side with ༄༅། and the title as its first words; the title phrase is set small */
+  let runs = parseBody(t.body || '');
+  if (plain && title) {
+    if (!runs.length) runs = [{ cls: 'main', text: title }];
+    else if (runs[0].cls === 'main' && titleMissing(title, runs[0].text)) runs[0].text = titlePrefix(title, runs[0].text) + ' ' + runs[0].text;
+  }
+  runs = smallTitle(title, runs);
+  const toks = tokenize(runs);
+  let k = plain ? 0 : 1, pos = 0;
+  while (pos < toks.length) {
+    const recto = k % 2 === 0, narrow = !plain && k <= 2;
+    const x0 = narrow ? NX0 : TX0, x1 = narrow ? NX1 : TX1;
+    const yig = narrow || recto;
+    let n = narrow ? LINES_NARROW : LINES_FULL, lh = LINE_H;
+    let r = fillLines(opt, toks, pos, x0, x1, n, yig);
+    if (!narrow && r.next < toks.length) {
+      const r7 = fillLines(opt, toks, pos, x0, x1, LINES_FULL + 1, yig);
+      if (r7.next >= toks.length) { r = r7; n = LINES_FULL + 1; lh = LH7; }
+    }
+    if (r.next <= pos) { pos++; continue; }                 // never stall
+    const area = narrow ? { y0: NARROW_BAND.y0 + GAP, h: NARROW_BAND.h - 2 * GAP } : { y0: IN.y0, h: IN.h };
+    const inkH = (n - 1) * lh + (face.asc + face.desc) * pt;
+    const base1 = area.y0 + (area.h - inkH) / 2 + face.asc * pt;
+    const lines = r.lines.map((ln, i) => {
+      const last = r.next >= toks.length && i === r.lines.length - 1;
+      placeLine(ln, !last);
+      return { y: base1 + i * lh, toks: ln.toks };
+    });
+    const page = { kind: narrow ? 'narrow' : 'full', band: narrow ? NARROW_BAND : null, lines, labels: [], recto, k };
+    if (yig) {
+      page.yig = { x: x0, y: base1 - face.headline * pt + face.ornTop * (pt * face.orn), size: pt * face.orn };
+    }
+    pages.push(page);
+    pos = r.next; k++;
+  }
+  /* margin labels: verso = brief title; recto = part1 / folio word / part2; title leaf = གཅིག */
+  const short = (t.short || '').trim() || briefTitle(t.title || '') || 'དཔེ་ཆ།';
+  const [p1, p2] = splitTitle(short);
+  const cx = IN.x0 + COL / 2;
+  pages.forEach((pg, idx) => {
+    const folio = tibNumber(1 + Math.floor(idx / 2));
+    if (pg.kind === 'title') pg.labels.push({ text: folio, cx, cy: PAGE_H / 2, maxLen: IN.h * 0.3 });
+    else if (idx % 2 === 0) {
+      pg.labels.push({ text: p1, cx, cy: IN.y0 + IN.h * 0.22, maxLen: IN.h * 0.3 });
+      pg.labels.push({ text: folio, cx, cy: PAGE_H / 2, maxLen: IN.h * 0.3 });
+      if (p2) pg.labels.push({ text: p2, cx, cy: IN.y1 - IN.h * 0.22, maxLen: IN.h * 0.3 });
+    } else pg.labels.push({ text: short, cx, cy: PAGE_H / 2, maxLen: IN.h * 0.9 });
+    pg.labels.push({ num: true, text: String(idx + 1), cx: IN.x1 - COL / 2, cy: PAGE_H / 2 });
+    pg.side = (1 + Math.floor(idx / 2)) + (idx % 2 === 0 ? 'a' : 'b');
+    pg.title = labelsFor;
+  });
+  return pages;
+}
+function layoutAll(opt, texts) {
+  widthCache = new Map();
+  const pages = []; const outline = [];
+  texts.forEach((t, i) => {
+    if (!(t.title || '').trim() && !(t.body || '').trim()) return;
+    const name = (t.title || '').replace(/^༄༅།\s*།?\s*/, '').trim() || ('Text ' + (i + 1));
+    outline.push({ title: name, page: pages.length });
+    const own = layoutText(opt, t, name);
+    pages.push(...own);
+    const blank = () => ({ kind: 'blank', labels: [], lines: [], title: name });
+    if (opt.mode === 'sheets') {
+      if (pages.length % 2) pages.push(blank());                     // finish the last leaf: a strip never mixes two texts
+      if (opt.blank) { pages.push(blank()); pages.push(blank()); }   // a blank leaf closes the text
+      if (!opt.pack) while (pages.length % 6) pages.push(blank());  // whole sheets per text
+    } else if (opt.blank) pages.push(blank());
+  });
+  return { pages, outline };
+}
+
+/* ---------------- imposition: three leaves per landscape sheet, two-sided ---------------- */
+const PAPERS = { letter: [792, 612], a4: [841.89, 595.28] };
+function sheetUnits(opt, pages, outline) {
+  const [PW, PH] = PAPERS[opt.paper] || PAPERS.letter;
+  const sc = Math.min(1, (PW - 36) / PAGE_W, (PH - 36) / (3 * PAGE_H));
+  const w = PAGE_W * sc, h = PAGE_H * sc, x0 = (PW - w) / 2;
+  const third = PH / 3;                               // the sheet is cut into three equal strips; each leaf sits centred in its strip
+  const rows = [0, 1, 2].map(i => i * third + (third - h) / 2);
+  const sides = pages.slice(); while (sides.length % 6) sides.push(null);
+  const units = []; const sheetOf = [];
+  function marks(ctx) {
+    ctx.strokeStyle = '#000'; ctx.lineWidth = 0.3; ctx.beginPath();
+    for (const y of [third, 2 * third]) { ctx.moveTo(0, y); ctx.lineTo(x0 - 4, y); ctx.moveTo(x0 + w + 4, y); ctx.lineTo(PW, y); }   // the two cuts
+    ctx.stroke();
+  }
+  function sheet(order, rot, n, face) {
+    const strips = order.map(k => sides[6 * n + k]);
+    const nums = order.map(k => 6 * n + k + 1);
+    units.push({
+      w: PW, h: PH, blank: false,
+      caption: `Sheet ${n + 1} · ${face} · sides ${nums.join(' · ')}`,
+      draw(ctx) {
+        ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, PW, PH); marks(ctx);
+        strips.forEach((pg, row) => {
+          if (!pg) return;
+          ctx.save(); ctx.translate(x0, rows[row]); ctx.scale(sc, sc);
+          if (rot) { ctx.translate(PAGE_W / 2, PAGE_H / 2); ctx.rotate(Math.PI); ctx.translate(-PAGE_W / 2, -PAGE_H / 2); }
+          drawPage(ctx, opt, pg); ctx.restore();
+        });
+      }
+    });
+    order.forEach(k => { sheetOf[6 * n + k] = units.length - 1; });
+  }
+  for (let n = 0; n < sides.length / 6; n++) {
+    sheet([0, 2, 4], false, n, 'front');
+    if (opt.duplex === 'short') sheet([1, 3, 5], true, n, 'back'); else sheet([5, 3, 1], false, n, 'back');
+  }
+  return { units, outline: outline.map(o => ({ title: o.title, page: sheetOf[o.page] })) };
+}
+function leafUnits(opt, pages, outline) {
+  const units = pages.map((p, i) => ({
+    w: PAGE_W, h: PAGE_H, blank: p.kind === 'blank',
+    caption: `${i + 1} · ${p.kind === 'blank' ? 'blank leaf' : p.kind === 'title' ? '1a · title' : p.side}`,
+    sub: p.title || '',
+    draw(ctx) { drawPage(ctx, opt, p); }
+  }));
+  return { units, outline };
+}
+
+/* ---------------- drawing (ctx is already scaled so that 1 unit = 1 pt) ---------------- */
+function rule(ctx, x0, y0, x1, y1) { ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke(); }
+function drawFrame(ctx) {
+  for (const r of [FR, IN]) ctx.strokeRect(r.x0, r.y0, r.x1 - r.x0, r.y1 - r.y0);
+}
+function drawColumns(ctx) {
+  for (const x of [IN.x0 + COL, IN.x0 + COL + GAP, IN.x1 - COL - GAP, IN.x1 - COL]) rule(ctx, x, IN.y0, x, IN.y1);
+}
+function drawBand(ctx, b) {
+  for (const y of [b.y0, b.y0 + GAP, b.y1 - GAP, b.y1]) rule(ctx, BAND_X0, y, BAND_X1, y);
+  for (const x of [BAND_X0, BAND_X0 + GAP, BAND_X1 - GAP, BAND_X1]) rule(ctx, x, b.y0, x, b.y1);
+  for (const c of CELLS.slice(0, 2)) for (const x of [c[1], c[1] + GAP]) rule(ctx, x, b.y0, x, b.y1);
+  for (const c of CELLS.slice(3)) for (const x of [c[0] - GAP, c[0]]) rule(ctx, x, b.y0, x, b.y1);
+}
+function drawText(ctx, opt, text, x, y, size) {
+  ctx.save(); ctx.scale(opt.sq, 1);
+  ctx.font = fontStr(opt, size);
+  if (opt.stroke > 0) { ctx.lineWidth = opt.stroke * size; ctx.lineJoin = 'round'; ctx.strokeText(text, x / opt.sq, y); }
+  ctx.fillText(text, x / opt.sq, y);
+  ctx.restore();
+}
+function drawLabel(ctx, opt, lab) {
+  if (lab.num) {                      // side number: serif digits turned to read from the bottom up, centred in the right column
+    ctx.save(); ctx.translate(lab.cx, lab.cy); ctx.rotate(-Math.PI / 2);
+    ctx.font = `${NUM_PT}px ${NUM_FONT}`;
+    const m = ctx.measureText(lab.text), asc = m.actualBoundingBoxAscent || NUM_PT * 0.7;
+    ctx.fillText(lab.text, -m.width / 2, asc / 2);
+    ctx.restore(); return;
+  }
+  let size = opt.pt;
+  mctx.font = fontStr(opt, size);
+  let w = mctx.measureText(lab.text).width;
+  const s = Math.min(1, lab.maxLen / w, (COL - 2) / ((opt.face.asc + opt.face.desc) * size));
+  size *= s; w *= s;
+  ctx.save(); ctx.translate(lab.cx, lab.cy); ctx.rotate(Math.PI / 2);
+  ctx.font = fontStr(opt, size);
+  const yb = (opt.face.asc - opt.face.desc) / 2 * size;
+  if (opt.stroke > 0) { ctx.lineWidth = opt.stroke * size; ctx.lineJoin = 'round'; ctx.strokeText(lab.text, -w / 2, yb); }
+  ctx.fillText(lab.text, -w / 2, yb);
+  ctx.restore();
+}
+function drawPage(ctx, opt, page) {
+  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, PAGE_W, PAGE_H);
+  if (page.kind === 'blank') return;
+  ctx.strokeStyle = '#000'; ctx.fillStyle = '#000'; ctx.lineWidth = 0.8; ctx.lineCap = 'butt';
+  ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
+  drawFrame(ctx);
+  if (page.band) drawBand(ctx, page.band); else drawColumns(ctx);
+  for (const ln of page.lines) for (const t of ln.toks) if (!t.space) drawText(ctx, opt, t.text, t.x, ln.y, t.size);
+  if (page.yig) drawText(ctx, opt, '༄༅།', page.yig.x, page.yig.y, page.yig.size);
+  for (const lab of page.labels) drawLabel(ctx, opt, lab);
+}
+
+/* ---------------- PDF (one lossless gray image per leaf, bookmarks per text) ---------------- */
+async function deflate(bytes) {
+  if (typeof CompressionStream === 'undefined') return null;
+  const cs = new CompressionStream('deflate');
+  const w = cs.writable.getWriter(); w.write(bytes); w.close();
+  return new Uint8Array(await new Response(cs.readable).arrayBuffer());
+}
+function hex16(s) { let h = 'FEFF'; for (let i = 0; i < s.length; i++) h += s.charCodeAt(i).toString(16).padStart(4, '0'); return h; }
+async function makePdf(opt, units, outline, dpi, onProgress) {
+  const k = dpi / 72;
+  const cv = document.createElement('canvas');
+  const ctx = cv.getContext('2d', { willReadFrequently: true });
+  const pages = units;
+  const enc = new TextEncoder();
+  const parts = []; const offsets = []; let pos = 0;
+  function push(x) { const b = typeof x === 'string' ? enc.encode(x) : x; parts.push(b); pos += b.length; }
+  function obj(id, body) { offsets[id] = pos; push(id + ' 0 obj\n'); if (Array.isArray(body)) body.forEach(push); else push(body); push('\nendobj\n'); }
+  push('%PDF-1.5\n'); push(new Uint8Array([0x25, 0xe2, 0xe3, 0xcf, 0xd3, 0x0a]));
+  let next = 4; const per = [];
+  for (const p of pages) { const blank = p.blank; per.push({ page: next, content: next + 1, image: blank ? 0 : next + 2 }); next += blank ? 2 : 3; }
+  const outIds = outline.map(() => next++);
+  const infoId = next++;
+  obj(1, `<< /Type /Catalog /Pages 2 0 R /Outlines 3 0 R${outIds.length ? ' /PageMode /UseOutlines' : ''} >>`);
+  obj(2, `<< /Type /Pages /Kids [${per.map(p => p.page + ' 0 R').join(' ')}] /Count ${pages.length} >>`);
+  obj(3, outIds.length ? `<< /Type /Outlines /First ${outIds[0]} 0 R /Last ${outIds[outIds.length - 1]} 0 R /Count ${outIds.length} >>` : '<< /Type /Outlines /Count 0 >>');
+  const canDeflate = typeof CompressionStream !== 'undefined';
+  for (let i = 0; i < pages.length; i++) {
+    const p = per[i], u = pages[i];
+    const UW = +u.w.toFixed(2), UH = +u.h.toFixed(2);
+    obj(p.page, `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${UW} ${UH}] /Resources << ${p.image ? `/XObject << /Im0 ${p.image} 0 R >>` : ''} >> /Contents ${p.content} 0 R >>`);
+    const cs = p.image ? `q ${UW} 0 0 ${UH} 0 0 cm /Im0 Do Q` : '';
+    obj(p.content, `<< /Length ${cs.length} >>\nstream\n${cs}\nendstream`);
+    if (p.image) {
+      const W = Math.round(u.w * k), H = Math.round(u.h * k);
+      if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
+      ctx.setTransform(k, 0, 0, k, 0, 0);
+      u.draw(ctx);
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      if (canDeflate) {
+        const d = ctx.getImageData(0, 0, W, H).data; const g = new Uint8Array(W * H);
+        for (let j = 0, n = W * H; j < n; j++) g[j] = d[j * 4];
+        const z = await deflate(g);
+        obj(p.image, [`<< /Type /XObject /Subtype /Image /Width ${W} /Height ${H} /ColorSpace /DeviceGray /BitsPerComponent 8 /Filter /FlateDecode /Length ${z.length} >>\nstream\n`, z, '\nendstream']);
+      } else {
+        const blob = await new Promise(res => cv.toBlob(res, 'image/jpeg', 0.92));
+        const jpg = new Uint8Array(await blob.arrayBuffer());
+        obj(p.image, [`<< /Type /XObject /Subtype /Image /Width ${W} /Height ${H} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpg.length} >>\nstream\n`, jpg, '\nendstream']);
+      }
+    }
+    if (onProgress) onProgress(i + 1, pages.length);
+    await new Promise(r => setTimeout(r, 0));
+  }
+  outline.forEach((o, i) => {
+    const id = outIds[i];
+    obj(id, `<< /Title <${hex16(o.title)}> /Parent 3 0 R /Dest [${per[o.page].page} 0 R /Fit]${i ? ` /Prev ${outIds[i - 1]} 0 R` : ''}${i < outIds.length - 1 ? ` /Next ${outIds[i + 1]} 0 R` : ''} >>`);
+  });
+  obj(infoId, `<< /Title <${hex16('Pecha')}> /Producer <${hex16('Pecha Press')}> >>`);
+  const xref = pos;
+  push(`xref\n0 ${next}\n0000000000 65535 f \n`);
+  for (let id = 1; id < next; id++) push(String(offsets[id]).padStart(10, '0') + ' 00000 n \n');
+  push(`trailer\n<< /Size ${next} /Root 1 0 R /Info ${infoId} 0 R >>\nstartxref\n${xref}\n%%EOF\n`);
+  return new Blob(parts, { type: 'application/pdf' });
+}
+
+/* ---------------- example ---------------- */
+const EXAMPLE = {
+  title: 'ཚེ་རབས་རྗེས་འཛིན་སྨོན་ལམ།',
+  short: 'ཚེ་རབས་རྗེས་འཛིན།',
+  author: '',
+  opening: 'plain',
+  body: 'ཚེ་རབས་རྗེས་འཛིན་སྨོན་ལམ། །དུས་གསུམ་གཤེགས་པའི་རྒྱལ་བ་ཐམས་ཅད་ཀུན། །རང་ངོར་བཤེས་གཉེན་མཆོག་གི་སྐུར་སྣང་བ། །བཀའ་དྲིན་མཚུངས་བྲལ་ཡོན་ཏན་རྒྱ་མཚོའི་གཏེར། །ཡིད་བཞིན་ནོར་བུ་ཁྱེད་ལ་གསོལ་བ་འདེབས། །ཁྱེད་ཀྱིས་འགྲོ་འདུལ་ཐབས་མཁས་སྤྱོད་པ་ནི། །རྣམ་པ་སྣ་ཚོགས་ཇི་ལྟར་བསྟན་བྱས་ཀྱང༌། །སྐད་ཅིག་ཙམ་ཡང་ལོག་ལྟ་མི་སྐྱེ་བར། །ཇི་མཛད་ལེགས་པར་མཐོང་བར་བྱིན་གྱིས་རློབས། །གང་གིས་བརྩེ་བར་གདམས་པའི་གསུང་བཟང་ལས། །ཚིག་ཟུར་ཙམ་ཡང་འགོངས་པར་མི་བྱེད་ཅིང༌། །བུམ་པ་གང་བྱོའི་ཚུལ་གྱིས་བྱིན་རླབས་ཀུན། །མ་ལུས་བདག་གི་རྒྱུད་ལ་འཕོ་བར་ཤོག །མགོན་ཁྱོད་དག་དང་མ་དག་ཞིང་རྣམས་སུ། །སྣ་ཚོགས་སྤྲུལ་བའི་རོལ་གར་ངོམ་པའི་ཚེ། །བདག་ཀྱང་ཁྱོད་ཀྱི་ཞབས་འབྲང་མཆོག་གྱུར་ནས། །བྱང་ཆུབ་སྤྱོད་ལ་མཉམ་དུ་འཇུག་པར་ཤོག །ནམ་ཞིག་རང་སྣང་དག་པའི་ཞིང་མཆོག་ཏུ། །རྗེ་ཁྱོད་མངོན་འཚང་རྒྱ་བའི་ཚུལ་སྟོན་ཚེ། །བདག་ཀྱང་འདུས་པ་དང་པོའི་གྲལ་འཁོད་དེ། །ཕྲིན་ལས་སྤེལ་བའི་བྱེད་པོ་མཆོག་ཏུ་སྨོན། །མདོར་ན་ད་ནས་སྐྱེ་བ་ཐམས་ཅད་དུ། །སྐྱབས་གཅིག་དམ་པ་ཁྱེད་དང་མི་འབྲལ་ཞིང༌། །བྱང་ཆུབ་ཐོབ་ཀྱང་རིགས་ཀྱི་བདག་པོ་རུ། །གྱུར་ནས་འགྲོ་ཁམས་དོང་ནས་སྤྲུགས་པར་ཤོག །\n{ཚེ་གང་འགྲོགས་པའི་བུ་མཆོག་རིག་གྲོལ་གྱིས། །ཚེ་གཅིག་ཉམས་སུ་ལེན་པའི་ཆོས་སྐལ་དུ། །ཚེ་རབས་རྗེས་འཛིན་སྨོན་ལམ་འབྲི་དགོས་ཞེས། །ཚེ་མཐར་འཁྱོལ་བའི་རྒན་བུར་བསྐུལ་བྱས་ཀྱང༌། །རབ་བརྗིད་ཤ་ཡི་སྡེར་ཁ་དཔངས་མཐོ་ཞིང༌། །རབ་དཀར་ཚིལ་གྱི་ཐིགས་པ་འབུམ་དུ་བརྡལ། །རབ་མཛེས་རྒྱན་གྱིས་ལེགས་པར་བཀླུབས་བྱས་ན། །རབ་སྙན་གཏམ་ལ་ཟད་མཐའ་མེད་མོད་ཀྱང། །བཅུད་མེད་ཟས་མང་ཕོ་བའི་གཤེད་དུ་གྱུར། །གོས་མེད་ལྷགས་པས་སོར་མོ་དམ་པོར་འཁྱུད། །བཤེས་མེད་ས་མཐར་འཁྱམས་པས་ཡིད་སྐྱོ་ནས། །དོན་མེད་སྨྲ་བ་མང་པོ་བཞག་ན་སྙམ། །ཞེས་གྲང་ངར་གྱིས་ཧ་ཅང་གདུངས་ནས་སོར་མོ་རྣམས་ཀྱང་གུམ་པོར་གྱུར་ཚེ་ངག་དབང་བློ་གྲོས་མཚུངས་མེད་པས་བྲིས་པའོ། །འདི་ཡང་རི་བོ་རྩེ་ལྔ་ནས་སོ། །}'
+};
+
+/* ---------------- state & UI ---------------- */
+const $ = id => document.getElementById(id);
+const els = { texts: $('texts'), leaves: $('leaves'), count: $('count'), status: $('status'), download: $('download') };
+let state = { texts: [structuredClone(EXAMPLE)], font: 'jomolhari', pt: 15, stroke: 0, weight: 400, sq: 0.95, gap: 109, blank: true, dpi: 300, mode: 'loose', paper: 'letter', duplex: 'short', pack: true };
+let current = { units: [], outline: [], opt: null };
+let fontsReady = false;
+
+function loadState() {
+  try {
+    const s = JSON.parse(localStorage.getItem('pecha-press') || 'null');
+    if (s && Array.isArray(s.texts) && s.texts.length) state = Object.assign(state, s);
+  } catch (e) { /* storage unavailable: start from the example */ }
+}
+function saveState() { try { localStorage.setItem('pecha-press', JSON.stringify(state)); } catch (e) { /* ignore */ } }
+
+function renderTextCards() {
+  els.texts.innerHTML = '';
+  state.texts.forEach((t, i) => {
+    const card = document.createElement('div'); card.className = 'text-card';
+    card.innerHTML = `
+      <div class="card-head"><b>Text ${i + 1}</b>${state.texts.length > 1 ? '<button type="button" class="ghost" data-remove="' + i + '" aria-label="Remove text ' + (i + 1) + '">Remove</button>' : ''}</div>
+      <label>Title <input type="text" class="tib" id="title-${i}" data-field="title" data-i="${i}" placeholder="སྨོན་ལམ།" lang="bo"></label>
+      <div class="row">
+        <label>Margin title <input type="text" class="tib" id="short-${i}" data-field="short" data-i="${i}" placeholder="auto from title" lang="bo"></label>
+        <label>Opening
+          <select id="opening-${i}" data-field="opening" data-i="${i}">
+            <option value="plain">Plain start — title as the first line</option>
+            <option value="leaf">Title leaf + two band sides</option>
+          </select>
+        </label>
+      </div>
+      <label id="authorLabel-${i}">Author line on the title leaf <input type="text" class="tib" id="author-${i}" data-field="author" data-i="${i}" lang="bo"></label>
+      <label>Text <textarea class="tib" id="body-${i}" data-field="body" data-i="${i}" lang="bo" spellcheck="false"></textarea></label>
+      <p class="hint">Tibetan only. Line breaks are joined pecha-style. The title that opens the text is set in small type (and supplied if the text lacks it). Wrap instructions or a colophon in <code>{curly braces}</code> for small type.</p>`;
+    els.texts.appendChild(card);
+    card.querySelector(`#title-${i}`).value = t.title || '';
+    card.querySelector(`#short-${i}`).value = t.short || '';
+    card.querySelector(`#opening-${i}`).value = t.opening === 'leaf' ? 'leaf' : 'plain';
+    card.querySelector(`#authorLabel-${i}`).hidden = t.opening !== 'leaf';
+    card.querySelector(`#author-${i}`).value = t.author || '';
+    card.querySelector(`#body-${i}`).value = t.body || '';
+  });
+}
+function readSettings() {
+  state.font = $('font').value; state.pt = parseFloat($('pt').value) || 15; state.stroke = parseFloat($('stroke').value) || 0;
+  state.weight = parseInt($('weight').value, 10) || 400; state.sq = parseFloat($('sq').value) || 0.95;
+  state.gap = parseFloat($('gap').value) || 109; state.blank = $('blank').checked; state.dpi = parseInt($('dpi').value, 10) || 300;
+  state.mode = $('mode').value; state.paper = $('paper').value; state.duplex = $('duplex').value; state.pack = $('pack').value !== '0';
+  $('sqVal').textContent = Math.round(state.sq * 100) + '%';
+  $('weightLabel').hidden = state.font !== 'noto';
+  $('sheetOpts').hidden = $('sheetHint').hidden = $('packLabel').hidden = state.mode !== 'sheets';
+}
+function writeSettings() {
+  $('font').value = state.font; $('pt').value = state.pt; $('stroke').value = String(state.stroke); $('weight').value = String(state.weight);
+  $('sq').value = state.sq; $('gap').value = state.gap; $('blank').checked = state.blank; $('dpi').value = String(state.dpi);
+  $('mode').value = state.mode || 'loose'; $('paper').value = state.paper || 'letter'; $('duplex').value = state.duplex || 'short'; $('pack').value = state.pack === false ? '0' : '1';
+  $('sqVal').textContent = Math.round(state.sq * 100) + '%'; $('weightLabel').hidden = state.font !== 'noto';
+  $('sheetOpts').hidden = $('sheetHint').hidden = $('packLabel').hidden = state.mode !== 'sheets';
+}
+function makeOpt() {
+  const face = FACES[state.font] || FACES.jomolhari;
+  return { face, pt: state.pt, smallPt: Math.round(state.pt * 0.66 * 10) / 10, stroke: state.stroke, weight: state.weight, sq: state.sq, gap: state.gap, blank: state.blank,
+           mode: state.mode, paper: state.paper, duplex: state.duplex, pack: state.pack !== false };
+}
+
+let renderTimer = 0;
+function scheduleRender() { clearTimeout(renderTimer); renderTimer = setTimeout(render, 220); }
+async function render() {
+  if (!fontsReady) return;
+  readSettings(); saveState();
+  const opt = makeOpt();
+  const { pages, outline } = layoutAll(opt, state.texts);
+  els.leaves.innerHTML = '';
+  if (!pages.length) { current = { units: [], outline: [], opt }; els.leaves.innerHTML = '<div class="empty">Add a title or some text to see leaves here.</div>'; els.count.textContent = '—'; els.download.hidden = true; return; }
+  const built = opt.mode === 'sheets' ? sheetUnits(opt, pages, outline) : leafUnits(opt, pages, outline);
+  current = { units: built.units, outline: built.outline, opt };
+  const sides = pages.filter(p => p.kind !== 'blank').length;
+  els.count.textContent = opt.mode === 'sheets'
+    ? `${sides} printed sides · ${Math.ceil(pages.length / 2)} leaves · ${built.units.length / 2} sheets, two-sided${opt.pack ? ', packed' : ''}`
+    : `${pages.length} sides · ${sides} printed · ${Math.ceil(pages.length / 2)} leaves`;
+  const cssW = Math.max(320, els.leaves.clientWidth || 800);
+  const frag = document.createDocumentFragment();
+  built.units.forEach(u => {
+    const k = Math.min(4.2, cssW * (window.devicePixelRatio || 1) / u.w);
+    const leaf = document.createElement('div'); leaf.className = 'leaf';
+    const cv = document.createElement('canvas'); cv.width = Math.round(u.w * k); cv.height = Math.round(u.h * k);
+    cv.style.aspectRatio = `${u.w} / ${u.h}`;
+    const ctx = cv.getContext('2d'); ctx.setTransform(k, 0, 0, k, 0, 0); u.draw(ctx);
+    const cap = document.createElement('div'); cap.className = 'cap';
+    cap.innerHTML = `<span>${u.caption}</span><span class="tib">${u.sub || ''}</span>`;
+    leaf.appendChild(cv); leaf.appendChild(cap); frag.appendChild(leaf);
+  });
+  els.leaves.appendChild(frag);
+  els.download.hidden = !downloads;
+}
+
+/* events */
+function onTextEdit(e) {
+  const f = e.target.dataset.field, i = +e.target.dataset.i;
+  if (f === undefined || !state.texts[i]) return;
+  state.texts[i][f] = e.target.value;
+  if (f === 'opening') $('authorLabel-' + i).hidden = e.target.value !== 'leaf';
+  scheduleRender();
+}
+els.texts.addEventListener('input', onTextEdit);
+els.texts.addEventListener('change', onTextEdit);
+els.texts.addEventListener('click', e => {
+  const b = e.target.closest('[data-remove]'); if (!b) return;
+  state.texts.splice(+b.dataset.remove, 1); renderTextCards(); scheduleRender();
+});
+$('addText').addEventListener('click', () => { state.texts.push({ title: '', short: '', author: '', opening: 'plain', body: '' }); renderTextCards(); $('title-' + (state.texts.length - 1)).focus(); scheduleRender(); });
+$('loadExample').addEventListener('click', () => { state.texts.push(structuredClone(EXAMPLE)); renderTextCards(); scheduleRender(); });
+for (const id of ['font', 'pt', 'stroke', 'weight', 'sq', 'gap', 'blank', 'dpi', 'mode', 'paper', 'duplex', 'pack']) { $(id).addEventListener('input', scheduleRender); $(id).addEventListener('change', scheduleRender); }
+window.addEventListener('resize', scheduleRender);
+
+/* download through the viewer's save prompt */
+let downloads = null;
+els.download.addEventListener('click', async () => {
+  if (!downloads || !current.units.length) return;
+  els.download.disabled = true; els.status.className = 'status';
+  try {
+    const blob = await makePdf(current.opt, current.units, current.outline, state.dpi, (i, n) => { els.status.textContent = `Rendering page ${i} of ${n}…`; });
+    els.status.textContent = `PDF ready (${(blob.size / 1048576).toFixed(1)} MB). Confirm the save…`;
+    const first = (current.outline[0] && current.outline[0].title) || 'pecha';
+    await downloads.save({ filename: first.replace(/[\/\\:*?"<>|]/g, '').slice(0, 60) + '.pdf', data: blob });
+    els.status.textContent = 'Saved.';
+  } catch (err) {
+    const code = err && err.code;
+    els.status.textContent = code === 'declined' ? '' : 'Could not save the PDF' + (err && err.message ? ': ' + err.message : '.');
+    if (code !== 'declined') els.status.className = 'status err';
+  } finally { els.download.disabled = false; }
+});
+
+/* boot */
+loadState(); writeSettings(); renderTextCards();
+(async () => {
+  try { await document.fonts.ready; await Promise.all([document.fonts.load('15px "Jomolhari"', 'ཀ'), document.fonts.load('15px "Noto Serif Tibetan"', 'ཀ'), document.fonts.load('700 15px "Noto Serif Tibetan"', 'ཀ'), document.fonts.load('13px "Noto Serif"', '1')]); } catch (e) { /* fall back to whatever is installed */ }
+  fontsReady = true; render();
+})();
+(async () => {
+  try { if (window.claude && window.claude.use) downloads = await window.claude.use('downloads'); } catch (e) { downloads = null; }
+  if (!downloads && typeof URL !== 'undefined' && URL.createObjectURL) {
+    /* hosted on an ordinary site: save through the browser's own download */
+    downloads = { save: async ({ filename, data }) => {
+      const url = URL.createObjectURL(data instanceof Blob ? data : new Blob([data], { type: 'application/pdf' }));
+      const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } };
+  }
+  if (!downloads) els.status.textContent = 'PDF download is not available in this view.';
+  else els.status.textContent = '';
+  els.download.hidden = !downloads || !current.units.length;
+})();
+})();
+</script>
+
+</html>
